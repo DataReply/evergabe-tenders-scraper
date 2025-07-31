@@ -1,15 +1,21 @@
-import requests
-import pandas as pd
-from bs4 import BeautifulSoup
+from __future__ import annotations
+
 from urllib.parse import urljoin
+
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
 
 class EvergabeSearcher:
     def __init__(self) -> None:
         self.base_url: str = "https://www.evergabe-online.de"
         self.referer_url: str = f"{self.base_url}/search.html?2"
-        self.search_form_url: str = f"{self.base_url}/search.html?1-1.0-searchPanel-searchForm-submitButton"
+        self.search_form_url: str = (
+            f"{self.base_url}/search.html?1-1.0-searchPanel-searchForm-submitButton"
+        )
         self.headers = {
             "Accept": "application/xml, text/xml, */*; q=0.01",
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -29,7 +35,6 @@ class EvergabeSearcher:
         }
         self.session = self._get_session()
 
-
     def _get_session(self) -> requests.Session:
         options = Options()
         options.add_argument("--headless=new")
@@ -45,7 +50,6 @@ class EvergabeSearcher:
         for cookie in cookies:
             session.cookies.set(name=cookie["name"], value=cookie["value"])
         return session
-    
 
     def search(self, search_string: str, period_from: str) -> pd.DataFrame:
         form_data = (
@@ -64,9 +68,10 @@ class EvergabeSearcher:
             "submitButton=1"
         )
 
-        response = self.session.post(self.search_form_url, headers=self.headers, data=form_data)
+        response = self.session.post(
+            self.search_form_url, headers=self.headers, data=form_data
+        )
         return self._parse_response(response=response)
-    
 
     def _parse_response(self, response: requests.Response) -> pd.DataFrame:
         results = response.text
@@ -78,7 +83,7 @@ class EvergabeSearcher:
 
         header_row = thead.find("tr", class_="headers")
         headers = [th.get_text(strip=True) for th in header_row.find_all("th")]
-        
+
         headers.insert(1, "Link")
 
         data_rows = []

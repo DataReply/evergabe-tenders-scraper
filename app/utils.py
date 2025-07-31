@@ -1,5 +1,9 @@
-from datetime import datetime 
-from dateutil.relativedelta import relativedelta 
+from __future__ import annotations
+
+from datetime import datetime
+
+from dateutil.relativedelta import relativedelta
+
 
 def get_date_one_month_from_now():
-    return (datetime.now() + relativedelta(months=1)).strftime('%d.%m.%Y')
+    return (datetime.now() + relativedelta(months=1)).strftime("%d.%m.%Y")

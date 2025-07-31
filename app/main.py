@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import warnings
-from bs4.builder import XMLParsedAsHTMLWarning
-from utils import get_date_one_month_from_now
-from search import EvergabeSearcher
+
 import pandas as pd
+from bs4.builder import XMLParsedAsHTMLWarning
+from search import EvergabeSearcher
+from utils import get_date_one_month_from_now
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
@@ -23,7 +26,10 @@ search_keywords = [
     {"en": "data engineering", "de": "Datenengineering"},
     {"en": "data science", "de": "Datenwissenschaft"},
     {"en": "RAG", "de": "RAG"},
-    {"en": "Retrieval Augmented Generation", "de": "Retrieval Augmentierte Generierung"},
+    {
+        "en": "Retrieval Augmented Generation",
+        "de": "Retrieval Augmentierte Generierung",
+    },
     {"en": "Large Language Model", "de": "Großes Sprachmodell"},
     {"en": "transformers", "de": "Transformer"},
     {"en": "big data", "de": "Big Data"},
