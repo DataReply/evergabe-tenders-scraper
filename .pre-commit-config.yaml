@@ -13,4 +13,3 @@ repos:
     rev: v3.15.0
     hooks:
     -   id: reorder-python-imports
-        args: [--py39-plus, --add-import, 'from __future__ import annotations']
