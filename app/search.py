@@ -1,3 +1,4 @@
+import re
 from urllib.parse import urljoin
 
 import pandas as pd
@@ -49,7 +50,9 @@ class EvergabeSearcher:
             session.cookies.set(name=cookie["name"], value=cookie["value"])
         return session
 
-    def search(self, search_string: str, period_from: str) -> pd.DataFrame:
+    def _get_first_page(
+        self, search_string: str, period_from: str
+    ) -> requests.Response:
         form_data = (
             f"simpleSearchParametersPanel%3AkeywordStringGroup%3AsearchString={search_string}&"
             "simpleSearchParametersPanel%3ApublishDateRangeGroup%3ApublishDateRange=ALL&"
@@ -69,11 +72,62 @@ class EvergabeSearcher:
         response = self.session.post(
             self.search_form_url, headers=self.headers, data=form_data
         )
-        return self._parse_response(response=response)
+        return response
 
-    def _parse_response(self, response: requests.Response) -> pd.DataFrame:
-        results = response.text
-        soup = BeautifulSoup(results, "lxml")
+    def _get_page(self, url: str):
+        response = self.session.get(url=url, headers=self.headers)
+        return response
+
+    def _get_other_pages(self, response: requests.Response) -> pd.DataFrame:
+        soup = BeautifulSoup(response.text, "lxml")
+        spans = soup.select("thead span.goto")
+
+        results = []
+        i = 0
+        while i < len(spans) - 1:
+            # go to the next page
+            next_page_relative_url = spans[i + 1].select_one("a").get("href")
+            next_page_relative_url = re.sub(
+                r"(\d+-\d\.)", r"\g<1>0", next_page_relative_url
+            )
+            next_page_url = urljoin(self.base_url, next_page_relative_url)
+            response = self._get_page(url=next_page_url)
+
+            # append page results
+            results.append(self._parse_other_page(response=response))
+
+            # update index
+            soup = BeautifulSoup(response.text, "lxml")
+            spans = soup.select("thead span.goto")
+            i = next(
+                (
+                    i
+                    for i, span in enumerate(spans)
+                    if not span.select_one("a").has_attr("href")
+                ),
+                None,
+            )
+
+        df = pd.concat(results, ignore_index=True) if results else pd.DataFrame()
+        return df
+
+    def search(
+        self, search_string: str, period_from: str, extensive: bool = False
+    ) -> pd.DataFrame:
+        results = []
+        response = self._get_first_page(
+            search_string=search_string, period_from=period_from
+        )
+        df: pd.DataFrame = self._parse_first_page(response=response)
+        if extensive:
+            others_df: pd.DataFrame = self._get_other_pages(response=response)
+
+            results.extend([df, others_df])
+            df = pd.concat(results, ignore_index=True)
+        return df
+
+    def _parse_table(self, html: str):
+        soup = BeautifulSoup(html, "lxml")
 
         table = soup.find("table", id="datatable")
         thead = table.find("thead")
@@ -95,8 +149,8 @@ class EvergabeSearcher:
             full_link = ""
             if a_tag:
                 title = a_tag.get_text(strip=True)
-                relative_link = a_tag.get("href", "")
-                full_link = urljoin(self.base_url, relative_link)
+                relative_url = a_tag.get("href", "")
+                full_link = urljoin(self.base_url, relative_url)
 
             row = []
             row.append(title)
@@ -108,3 +162,14 @@ class EvergabeSearcher:
 
         df = pd.DataFrame(data_rows, columns=headers)
         return df
+
+    def _parse_first_page(self, response: requests.Response) -> pd.DataFrame:
+        text = response.text
+        return self._parse_table(text)
+
+    def _parse_other_page(self, response: requests.Response) -> pd.DataFrame:
+        text = response.text
+        soup = BeautifulSoup(text, "xml")
+        component_tag = soup.find("component")
+        cdata_content = component_tag.contents[0]
+        return self._parse_table(cdata_content)

@@ -34,7 +34,7 @@ search_keywords = [
 ]
 
 
-def main():
+def main(extensive: bool = False):
     searcher = EvergabeSearcher()
 
     period_from = get_date_one_month_from_now()
@@ -43,14 +43,19 @@ def main():
     for keyword_dict in search_keywords:
         keyword_en, keyword_de = keyword_dict.values()
         print(f"Searching '{keyword_en}'...")
-        en_df = searcher.search(search_string=keyword_en, period_from=period_from)
+        en_df = searcher.search(
+            search_string=keyword_en, period_from=period_from, extensive=extensive
+        )
         print(f"Searching '{keyword_de}'...")
-        de_df = searcher.search(search_string=keyword_de, period_from=period_from)
+        de_df = searcher.search(
+            search_string=keyword_de, period_from=period_from, extensive=extensive
+        )
 
         all_results.append(en_df)
         all_results.append(de_df)
 
     df = pd.concat(all_results, ignore_index=True)
+    df = df.drop_duplicates(subset="Geschäftszeichen")
 
     df.to_html("res/results.html")
     print("Saved response to 'results.html'")
