@@ -4,6 +4,7 @@ import pandas as pd
 from bs4.builder import XMLParsedAsHTMLWarning
 from search import EvergabeSearcher
 from utils import get_date_one_month_from_now
+import argparse
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
@@ -62,4 +63,9 @@ def main(extensive: bool = False):
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--extensive", action="store_true", help="Search all pages of results")
+    args = parser.parse_args()
+
+    main(extensive=args.extensive)
+
