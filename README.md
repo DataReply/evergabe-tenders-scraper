@@ -51,3 +51,4 @@ This performs a non-extensive search and exports the deduplicated results to `re
 cd app
 python main.py --extensive
 ```
+Enables deep scraping by following pagination links to collect **all matching tenders**, not just those on the first page. Useful for comprehensive monitoring when many results are expected.
