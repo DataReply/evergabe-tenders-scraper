@@ -1,6 +1,6 @@
 # tenders-monitoring
 
-Automates keyword-based searches on [evergabe-online.de](evergabe-online.de) to collect public tenders related to topics like AI, data platforms, and cloud technologies.
+Automates keyword-based searches on [evergabe-online.de](https://www.evergabe-online.de/) to collect public tenders related to topics like AI, data platforms, and cloud technologies.
 
 The search targets the following topics (in both English and German):
 - Artificial Intelligence / Künstliche Intelligenz
@@ -21,13 +21,13 @@ The main components of the project include:
 - Searches both English and German translations of selected keywords.
 - Limits results to tenders with deadlines one month from the current date.
 - Extracts results across multiple pages (optional extensive mode).
-- Outputs results in a user-friendly HTML table (results.html).
+- Outputs results in a user-friendly HTML table (`app/res/results.html`).
 - Uses a hybrid of Selenium and requests to bypass cookie/session restrictions.
 
 ## Installation
 
 ### Prerequisites
-- Python 3.9+
+- Python 3.11
 - Google Chrome (or Chromium-based browser like Brave)
 - ChromeDriver installed and in your PATH
 
